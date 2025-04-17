@@ -1,2 +1,2 @@
-var = 10;
-return 12;
+int var = 10;
+return var;

@@ -79,6 +79,8 @@ char *token_type_to_string(TokenType type) {
     return "IDENTIFIER";
   case STRING:
     return "STRING";
+  case END_OF_TOKENS:
+    return "END OF TOKENS";
   default:
     return "UNKNOWN";
   }
@@ -149,4 +151,5 @@ void lexer(char *file_contents, Token **tokens) {
     }
     current++;
   }
+  *tokens = add_token(END_OF_TOKENS, *tokens, "/0", 2);
 }
