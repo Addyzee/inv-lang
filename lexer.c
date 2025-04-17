@@ -5,6 +5,7 @@
 #include <ctype.h>
 
 typedef enum {
+  TYPE,
   INT,
   FLOAT,
   KEYWORD,
@@ -67,6 +68,8 @@ char *read_file_to_string(FILE *file) {
 
 char *token_type_to_string(TokenType type) {
   switch (type) {
+  case TYPE:
+    return "TYPE";
   case INT:
     return "INT";
   case FLOAT:
@@ -133,7 +136,11 @@ void lexer(char *file_contents, Token **tokens) {
       if ((strcmp(word, "return") == 0) | (strcmp(word, "exit") == 0) |
           (strcmp(word, "another") == 0) | (strcmp(word, "if") == 0)) {
         *tokens = add_token(KEYWORD, *tokens, start, length);
-      } else {
+      } 
+      else if((strcmp(word, "int") == 0) | (strcmp(word, "float") == 0)){
+        *tokens = add_token(TYPE, *tokens, start, length);
+      }
+      else {
         *tokens = add_token(IDENTIFIER, *tokens, start, length);
       }
 
