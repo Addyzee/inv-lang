@@ -26,7 +26,6 @@ int main(int argc, char *argv[]) {
 
   print_tokens(tokens);
   parse_tokens(tokens);
-  tree();
 
 
   free_tokens(tokens);

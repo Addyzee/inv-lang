@@ -6,59 +6,187 @@
 #include "lexer.h"
 
 typedef struct Node {
+  char *type; // TO DO: use type for printing node
   Token *token;
   struct Node *left;
   struct Node *right;
 } Node;
 
 Node *init_node(Node *root, char *value) {
-    Node *new_node = malloc(sizeof(Node));
-    new_node->token = malloc(sizeof(Token));
-    new_node->token->value = value;
-    new_node->left = NULL;
-    new_node->right = NULL;
-    if(root == NULL){
-        return new_node;
-    } else if(root->left == NULL){
-        root->left = new_node;
-    } else if(root->right == NULL){
-        root->right = new_node;
-    }else{
-        init_node(root->left,value);
-    }
-    return root;
- 
+  Node *new_node = malloc(sizeof(Node));
+  new_node->token = malloc(sizeof(Token));
+  new_node->token->value = value;
+  new_node->left = NULL;
+  new_node->right = NULL;
+  if (root == NULL) {
+    return new_node;
+  } else if (root->left == NULL) {
+    root->left = new_node;
+  } else if (root->right == NULL) {
+    root->right = new_node;
+  } else {
+    init_node(root->left, value);
+  }
+  return root;
 }
 
-void print_tree(Node *root) {
-  printf("%s\n", root->token->value);
-  if (root->left) {
-    printf("left:\n");
-    print_tree(root->left);
-  }
-  if (root->right) {
-    printf("right\n");
-    print_tree(root->right);
+void print_indent(int level) {
+  for (int i = 0; i < level; i++) {
+    printf("  ");
   }
 }
+
+void print_tree(Node *root, int indent_level) {
+  if (!root)
+    return;
+
+  print_indent(indent_level);
+  printf("%s\n", root->token->value);
+
+  if (root->left) {
+    print_indent(indent_level);
+    print_tree(root->left, indent_level + 1);
+  }
+
+  if (root->right) {
+    print_indent(indent_level);
+    print_tree(root->right, indent_level + 1);
+  }
+}
+
+int operator_parsing(Token *token) {
+  // check if the token is an operator
+  switch (token->type) {
+  case ADDITION:
+    return 1;
+  case SUBTRACTION:
+    return 1;
+  case MULTIPLICATION:
+    return 1;
+  case DIVISION:
+    return 1;
+  case EXPONENT:
+    return 1;
+  case INTEGER_DIVISION:
+    return 1;
+  case MODULUS:
+    return 1;
+  case INCREMENT:
+    return 1;
+  case DECREMENT:
+    return 1;
+  case OPERATOR:
+    return 0;
+  default:
+    return 0;
+  }
+}
+
+void parse_program() {}
+
+void parse_statement() {}
+
+void parse_declaration() {}
+
+void parse_assignment() {}
+
+Node *parse_term(Token **current) {
+  Node *term = NULL;
+  if (((*current)->type == INT) || ((*current)->type == FLOAT)) {
+    term = init_node(term, (*current)->value);
+    term->type = "TERM";
+  }
+  if (term == NULL) {
+    printf(
+        "ERROR PARSING TERM. UNEXPECTED TOKEN TYPE: %s %s \nEXPECTED FLOAT OR "
+        "INT\n",
+        token_type_to_string((*current)->type), (*current)->value);
+  }
+  return term;
+}
+
+Node *parse_expression(Token **current) {
+  Node *expression = NULL;
+  Node *term = parse_term(current);
+
+  if (term == NULL) {
+    return NULL;
+  }
+
+  // check if next token is an operator
+  if (!operator_parsing((*current)->next)) {
+    // if not an operator, return the term
+    expression = term;
+  } else if (operator_parsing((*current)->next)) {
+    *current = (*current)->next;
+
+    // create the parent node to be the operator eg +
+    expression = init_node(expression, (*current)->value);
+    expression->left = term;
+
+    if (((*current)->next->type == INT) || ((*current)->next->type == FLOAT)) {
+      *current = (*current)->next;
+      expression->right = parse_expression(current);
+
+    } else {
+      printf("ERROR PARSING EXPRESSION. UNEXPECTED TOKEN TYPE: %s %s \n",
+             token_type_to_string((*current)->next->type),
+             (*current)->next->value);
+      return NULL;
+    }
+  }
+
+  return expression;
+}
+
+Node *parse_print(Token **current) {
+  if (((*current)->type == KEYWORD) &&
+      (strcmp((*current)->value, "print") != 0)) {
+    printf("Not a print statement");
+    return NULL;
+  }
+
+  Node *print = NULL;
+  print = init_node(print, (*current)->value);
+
+  current = &(*current)->next;
+  if ((*current)->type != SEPARATOR) {
+    printf("EXPECTED SEPARATOR ( AFTER PRINT. FOUND %s %s\n",
+           token_type_to_string((*current)->type), (*current)->value);
+    return NULL;
+  }
+  current = &(*current)->next;
+  Node *expression = parse_expression(current);
+  if (expression == NULL) {
+    printf("NULL EXPRESSION AT PRINT\n");
+  }
+  print->left = expression;
+
+  current = &(*current)->next;
+
+  // check correct syntax for print ending: );
+  if (((*current)->type != SEPARATOR) || 
+      (strcmp((*current)->value, ")") != 0)) {
+    printf("EXPECTED SEPARATOR ) AFTER PRINT. FOUND %s %s\n",
+           token_type_to_string((*current)->type), (*current)->value);
+    return NULL;
+  }
+  current = &(*current)->next;
+  if ((*current)->type != SEPARATOR || 
+      strcmp((*current)->value, ";") != 0) {
+    printf("EXPECTED SEPARATOR ; AFTER PRINT. FOUND %s %s\n",
+           token_type_to_string((*current)->type), (*current)->value);
+    return NULL;
+  }
+
+  return print;
+}
+
+void parse_factor() {}
+
+void parse_type() {}
 
 void parse_tokens(Token *head) {
-  Token *current = head;
-
-  while (current) {
-    printf("showing token: %s\n", current->value);
-    current = current->next;
-  }
-}
-
-void tree() {
-  printf("tree\n");
-  Node *root = NULL;
-  root = init_node(root, "+");
-  root = init_node(root, "*");
-  root = init_node(root, "5");
-  print_tree(root);
-  free(root->left);
-  free(root->right);
-  free(root);
+  Node *tree = parse_print(&head);
+  print_tree(tree, 0);
 }

@@ -5,16 +5,25 @@
 
 
 typedef enum {
-    INT,
-    FLOAT,
-    KEYWORD,
-    SEPARATOR,
-    OPERATOR,
-    IDENTIFIER,
-    STRING,
-    COMP,
-    END_OF_TOKENS,
-  } TokenType;
+  TYPE,
+  INT,
+  FLOAT,
+  KEYWORD,
+  SEPARATOR,
+  ADDITION,
+  SUBTRACTION,
+  MULTIPLICATION,
+  DIVISION,
+  INCREMENT,
+  DECREMENT,
+  EXPONENT,
+  INTEGER_DIVISION,
+  MODULUS,
+  OPERATOR,
+  IDENTIFIER,
+  STRING,
+  END_OF_TOKENS,
+} TokenType;
   
   typedef struct Token {
     TokenType type;
