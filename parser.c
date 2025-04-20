@@ -90,18 +90,56 @@ void parse_declaration() {}
 
 void parse_assignment() {}
 
-Node *parse_term(Token **current) {
-  Node *term = NULL;
+Node *parse_factor(Token **current) {
+  Node *factor = NULL;
   if (((*current)->type == INT) || ((*current)->type == FLOAT)) {
-    term = init_node(term, (*current)->value);
-    term->type = "TERM";
+    factor = init_node(factor, (*current)->value);
+    *current = (*current)->next;
+    printf("current %s\n", (*current)->value);
   }
-  if (term == NULL) {
+  if (factor == NULL) {
     printf(
-        "ERROR PARSING TERM. UNEXPECTED TOKEN TYPE: %s %s \nEXPECTED FLOAT OR "
+        "ERROR PARSING FACTOR. UNEXPECTED TOKEN TYPE: %s %s \nEXPECTED FLOAT OR "
         "INT\n",
         token_type_to_string((*current)->type), (*current)->value);
   }
+  return factor;
+}
+
+Node *parse_term(Token **current) {
+  Node *term = NULL;
+
+  Node *factor = parse_factor(current);
+  if (factor == NULL) {
+    printf("NULL FACTOR AT TERM\n");
+    return NULL;
+  }
+  
+  if((*current)->type == MULTIPLICATION || 
+     (*current)->type == DIVISION ||
+     (*current)->type == EXPONENT ||
+     (*current)->type == INTEGER_DIVISION ||
+     (*current)->type == MODULUS) {
+    
+    term = init_node(term, (*current)->value);
+
+    term->left = factor;
+
+    *current = (*current)->next;
+
+    Node *next_term = parse_term(current);
+
+    if (next_term == NULL) {
+      printf("NULL TERM\n");
+      return NULL;
+    }
+    term->right = next_term;
+    print_tree(term, 0);
+  } else{
+    term = factor;
+  } 
+
+
   return term;
 }
 
@@ -114,17 +152,17 @@ Node *parse_expression(Token **current) {
   }
 
   // check if next token is an operator
-  if (!operator_parsing((*current)->next)) {
+  if (!operator_parsing((*current))) {
     // if not an operator, return the term
     expression = term;
-  } else if (operator_parsing((*current)->next)) {
-    *current = (*current)->next;
-
+  } else if (operator_parsing((*current))) {
     // create the parent node to be the operator eg +
     expression = init_node(expression, (*current)->value);
     expression->left = term;
+    
 
-    if (((*current)->next->type == INT) || ((*current)->next->type == FLOAT)) {
+    if (((*current)->next->type == INT) || ((*current)->next->type == FLOAT) ||
+        ((*current)->next->type == IDENTIFIER)) {
       *current = (*current)->next;
       expression->right = parse_expression(current);
 
@@ -149,31 +187,30 @@ Node *parse_print(Token **current) {
   Node *print = NULL;
   print = init_node(print, (*current)->value);
 
-  current = &(*current)->next;
+  *current = (*current)->next;
   if ((*current)->type != SEPARATOR) {
     printf("EXPECTED SEPARATOR ( AFTER PRINT. FOUND %s %s\n",
            token_type_to_string((*current)->type), (*current)->value);
     return NULL;
   }
-  current = &(*current)->next;
+  *current = (*current)->next;
   Node *expression = parse_expression(current);
+  print_tree(expression, 0);
   if (expression == NULL) {
     printf("NULL EXPRESSION AT PRINT\n");
   }
   print->left = expression;
-
-  current = &(*current)->next;
+  printf("current %s\n", (*current)->value);
 
   // check correct syntax for print ending: );
-  if (((*current)->type != SEPARATOR) || 
+  if (((*current)->type != SEPARATOR) ||
       (strcmp((*current)->value, ")") != 0)) {
     printf("EXPECTED SEPARATOR ) AFTER PRINT. FOUND %s %s\n",
            token_type_to_string((*current)->type), (*current)->value);
     return NULL;
   }
-  current = &(*current)->next;
-  if ((*current)->type != SEPARATOR || 
-      strcmp((*current)->value, ";") != 0) {
+  *current = (*current)->next;
+  if ((*current)->type != SEPARATOR || strcmp((*current)->value, ";") != 0) {
     printf("EXPECTED SEPARATOR ; AFTER PRINT. FOUND %s %s\n",
            token_type_to_string((*current)->type), (*current)->value);
     return NULL;
@@ -181,8 +218,6 @@ Node *parse_print(Token **current) {
 
   return print;
 }
-
-void parse_factor() {}
 
 void parse_type() {}
 
