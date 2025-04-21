@@ -10,6 +10,7 @@ typedef enum {
   FLOAT,
   KEYWORD,
   SEPARATOR,
+  ASSIGNMENT_OPERATOR,
   ADDITION,
   SUBTRACTION,
   MULTIPLICATION,
@@ -22,6 +23,7 @@ typedef enum {
   OPERATOR,
   IDENTIFIER,
   STRING,
+  START,
   END_OF_TOKENS,
 } TokenType;
   

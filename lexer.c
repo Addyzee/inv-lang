@@ -9,6 +9,7 @@ typedef enum {
   FLOAT,
   KEYWORD,
   SEPARATOR,
+  ASSIGNMENT_OPERATOR,
   ADDITION,
   SUBTRACTION,
   MULTIPLICATION,
@@ -21,6 +22,7 @@ typedef enum {
   OPERATOR,
   IDENTIFIER,
   STRING,
+  START,
   END_OF_TOKENS,
 } TokenType;
 
@@ -86,6 +88,8 @@ char *token_type_to_string(TokenType type) {
     return "KEYWORD";
   case SEPARATOR:
     return "SEPARATOR";
+  case ASSIGNMENT_OPERATOR:
+    return "ASSIGNMENT_OPERATOR";
   case ADDITION:
     return "ADDITION";
   case SUBTRACTION:
@@ -95,7 +99,7 @@ char *token_type_to_string(TokenType type) {
   case DECREMENT:
     return "DECREMENT";
   case MULTIPLICATION:
-    return "MULTIPLICATION";    
+    return "MULTIPLICATION";
   case DIVISION:
     return "DIVISION";
   case EXPONENT:
@@ -153,8 +157,7 @@ void lexer(char *file_contents, Token **tokens) {
 
       continue;
 
-    } 
-    else if (isalpha(*current)) {
+    } else if (isalpha(*current)) {
       char *start = current;
       while (*current != ' ' && *current != '\0' && *current != '(' &&
              *current != ')')
@@ -163,6 +166,7 @@ void lexer(char *file_contents, Token **tokens) {
 
       char word[length];
       memcpy(word, start, length);
+      word[length] = '\0';
 
       // keywords
       if ((strcmp(word, "print") == 0) || (strcmp(word, "return") == 0) ||
@@ -171,9 +175,9 @@ void lexer(char *file_contents, Token **tokens) {
         *tokens = add_token(KEYWORD, *tokens, start, length);
       } else if ((strcmp(word, "int") == 0) || (strcmp(word, "float") == 0)) {
         *tokens = add_token(TYPE, *tokens, start, length);
-      } else 
-      //identifier
-      {
+      }
+      // identifier
+      else {
         *tokens = add_token(IDENTIFIER, *tokens, start, length);
       }
 
@@ -187,14 +191,18 @@ void lexer(char *file_contents, Token **tokens) {
              (*current != '\0'))
         current++;
       int length = current - start;
-      *tokens = add_token(SEPARATOR, *tokens, start, length);
+      if (length == 1) {
+        *tokens = add_token(ASSIGNMENT_OPERATOR, *tokens, start, 1);
+      } else {
+        *tokens = add_token(OPERATOR, *tokens, start, length);
+      }
       continue;
     }
     // operators
     else if (*current == '+') {
       char *start = current;
       current++;
-      while ((*current == '+') || (*current == '=') ){
+      while ((*current == '+') || (*current == '=')) {
         current++;
       }
       int length = current - start;
@@ -222,52 +230,52 @@ void lexer(char *file_contents, Token **tokens) {
       } else {
         *tokens = add_token(OPERATOR, *tokens, start, length);
       }
-      continue;    
+      continue;
     } else if (*current == '*') {
-        char *start = current;
+      char *start = current;
+      current++;
+      while ((*current == '*') || (*current == '=')) {
         current++;
-        while ((*current == '*') || (*current == '=')) {
-          current++;
-        }
-        int length = current - start;
-        if (length == 1) {
-          *tokens = add_token(MULTIPLICATION, *tokens, start, 1);
-        } else if (length == 2) {
-          // To do: add multiplication equals
-          *tokens = add_token(EXPONENT, *tokens, start, 2);
-        } else {
-          *tokens = add_token(OPERATOR, *tokens, start, length);
-        }
-        continue;
-      } else if (*current == '/') {
-          char *start = current;
-          current++;
-          while ((*current == '/') || (*current == '=')) {
-            current++;
-          }
-          int length = current - start;
-          if (length == 1) {
-            *tokens = add_token(DIVISION, *tokens, start, 1);
-          } else if (length == 2) {
-            // To do: add division equals
-            *tokens = add_token(INTEGER_DIVISION, *tokens, start, 2);
-          } else {
-            *tokens = add_token(OPERATOR, *tokens, start, length);
-          }
-          continue;
-        } else if (*current == '%') {
-            char *start = current;
-            current++;
-            while (!isdigit(*current) && !(isalpha(*current)) && (*current != ' ') &&
-                   (*current != '\0')) {
-              current++;
-            }
-            int length = current - start;
-            if (length == 1) {
-              *tokens = add_token(MODULUS, *tokens, start, 1);
-            } else {
-              *tokens = add_token(OPERATOR, *tokens, start, length);
-            }
+      }
+      int length = current - start;
+      if (length == 1) {
+        *tokens = add_token(MULTIPLICATION, *tokens, start, 1);
+      } else if (length == 2) {
+        // To do: add multiplication equals
+        *tokens = add_token(EXPONENT, *tokens, start, 2);
+      } else {
+        *tokens = add_token(OPERATOR, *tokens, start, length);
+      }
+      continue;
+    } else if (*current == '/') {
+      char *start = current;
+      current++;
+      while ((*current == '/') || (*current == '=')) {
+        current++;
+      }
+      int length = current - start;
+      if (length == 1) {
+        *tokens = add_token(DIVISION, *tokens, start, 1);
+      } else if (length == 2) {
+        // To do: add division equals
+        *tokens = add_token(INTEGER_DIVISION, *tokens, start, 2);
+      } else {
+        *tokens = add_token(OPERATOR, *tokens, start, length);
+      }
+      continue;
+    } else if (*current == '%') {
+      char *start = current;
+      current++;
+      while (!isdigit(*current) && !(isalpha(*current)) && (*current != ' ') &&
+             (*current != '\0')) {
+        current++;
+      }
+      int length = current - start;
+      if (length == 1) {
+        *tokens = add_token(MODULUS, *tokens, start, 1);
+      } else {
+        *tokens = add_token(OPERATOR, *tokens, start, length);
+      }
 
       continue;
     }
