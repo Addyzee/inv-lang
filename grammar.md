@@ -3,12 +3,19 @@ Program         ::= Statement Program
 
 Statement       ::= Declaration
                   | Assignment
+                  | Increment
+                  | Decrement
                   | Print
                   | Expr ';'
+
 
 Declaration     ::= Type ID '=' Expr ';'
 
 Assignment      ::= ID '=' Expr ';'
+
+Increment       ::= ID '++' ';'
+
+Decrement       ::= ID '--' ';'
 
 Print           ::= 'print' '(' Expr ')' ';'
 

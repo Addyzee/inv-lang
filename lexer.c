@@ -29,15 +29,17 @@ typedef enum {
 typedef struct Token {
   TokenType type;
   char *value;
+  int line_number;
   struct Token *next;
 } Token;
 
-Token *add_token(TokenType type, Token *head, char *start, int length) {
+Token *add_token(TokenType type, Token *head, char *start, int length, int line_number) {
   Token *new_token = (Token *)malloc(sizeof(Token));
   if (!new_token)
     return NULL;
   new_token->type = type;
   new_token->value = (char *)(malloc(length + 1));
+  new_token->line_number = line_number;
   if (!new_token->value)
     return NULL;
   strncpy(new_token->value, start, length);
@@ -141,8 +143,9 @@ void free_tokens(Token *head) {
   }
 }
 
-void lexer(char *file_contents, Token **tokens) {
+Token *lexer(char *file_contents, Token **tokens) {
   char *current = file_contents;
+  int line_number = 1;
 
   while (*current != '\0') {
     // integer literals
@@ -153,14 +156,16 @@ void lexer(char *file_contents, Token **tokens) {
         current++;
 
       int length = current - start;
-      *tokens = add_token(INT, *tokens, start, length);
+      *tokens = add_token(INT, *tokens, start, length, line_number);
 
       continue;
 
     } else if (isalpha(*current)) {
       char *start = current;
       while (*current != ' ' && *current != '\0' && *current != '(' &&
-             *current != ')')
+             *current != ')' && *current != ';' && *current != '=' && *current != '+' &&
+             *current != '-' && *current != '*' && *current != '/' && *current != '%' &&
+             *current != '\n') 
         current++;
       int length = current - start;
 
@@ -172,19 +177,19 @@ void lexer(char *file_contents, Token **tokens) {
       if ((strcmp(word, "print") == 0) || (strcmp(word, "return") == 0) ||
           (strcmp(word, "exit") == 0) || (strcmp(word, "another") == 0) ||
           (strcmp(word, "if") == 0)) {
-        *tokens = add_token(KEYWORD, *tokens, start, length);
+        *tokens = add_token(KEYWORD, *tokens, start, length, line_number);
       } else if ((strcmp(word, "int") == 0) || (strcmp(word, "float") == 0)) {
-        *tokens = add_token(TYPE, *tokens, start, length);
+        *tokens = add_token(TYPE, *tokens, start, length, line_number);
       }
       // identifier
       else {
-        *tokens = add_token(IDENTIFIER, *tokens, start, length);
+        *tokens = add_token(IDENTIFIER, *tokens, start, length, line_number);
       }
 
       continue;
     } else if ((*current == ';') || (*current == '(') || (*current == ')')) {
       char *start = current;
-      *tokens = add_token(SEPARATOR, *tokens, start, 1);
+      *tokens = add_token(SEPARATOR, *tokens, start, 1, line_number);
     } else if (*current == '=') {
       char *start = current;
       while (!isdigit(*current) && !(isalpha(*current)) && (*current != ' ') &&
@@ -192,9 +197,9 @@ void lexer(char *file_contents, Token **tokens) {
         current++;
       int length = current - start;
       if (length == 1) {
-        *tokens = add_token(ASSIGNMENT_OPERATOR, *tokens, start, 1);
+        *tokens = add_token(ASSIGNMENT_OPERATOR, *tokens, start, 1, line_number);
       } else {
-        *tokens = add_token(OPERATOR, *tokens, start, length);
+        *tokens = add_token(OPERATOR, *tokens, start, length, line_number);
       }
       continue;
     }
@@ -207,12 +212,12 @@ void lexer(char *file_contents, Token **tokens) {
       }
       int length = current - start;
       if (length == 1) {
-        *tokens = add_token(ADDITION, *tokens, start, 1);
+        *tokens = add_token(ADDITION, *tokens, start, 1, line_number);
       } else if (length == 2) {
         // To do: add addition equals
-        *tokens = add_token(INCREMENT, *tokens, start, 2);
+        *tokens = add_token(INCREMENT, *tokens, start, 2, line_number);
       } else {
-        *tokens = add_token(OPERATOR, *tokens, start, length);
+        *tokens = add_token(OPERATOR, *tokens, start, length, line_number);
       }
       continue;
     } else if (*current == '-') {
@@ -223,12 +228,12 @@ void lexer(char *file_contents, Token **tokens) {
       }
       int length = current - start;
       if (length == 1) {
-        *tokens = add_token(SUBTRACTION, *tokens, start, 1);
+        *tokens = add_token(SUBTRACTION, *tokens, start, 1, line_number);
       } else if (length == 2) {
         // To do: add subtraction equals
-        *tokens = add_token(DECREMENT, *tokens, start, 2);
+        *tokens = add_token(DECREMENT, *tokens, start, 2, line_number);
       } else {
-        *tokens = add_token(OPERATOR, *tokens, start, length);
+        *tokens = add_token(OPERATOR, *tokens, start, length, line_number);
       }
       continue;
     } else if (*current == '*') {
@@ -239,12 +244,12 @@ void lexer(char *file_contents, Token **tokens) {
       }
       int length = current - start;
       if (length == 1) {
-        *tokens = add_token(MULTIPLICATION, *tokens, start, 1);
+        *tokens = add_token(MULTIPLICATION, *tokens, start, 1, line_number);
       } else if (length == 2) {
         // To do: add multiplication equals
-        *tokens = add_token(EXPONENT, *tokens, start, 2);
+        *tokens = add_token(EXPONENT, *tokens, start, 2, line_number);
       } else {
-        *tokens = add_token(OPERATOR, *tokens, start, length);
+        *tokens = add_token(OPERATOR, *tokens, start, length, line_number);
       }
       continue;
     } else if (*current == '/') {
@@ -255,12 +260,12 @@ void lexer(char *file_contents, Token **tokens) {
       }
       int length = current - start;
       if (length == 1) {
-        *tokens = add_token(DIVISION, *tokens, start, 1);
+        *tokens = add_token(DIVISION, *tokens, start, 1, line_number);
       } else if (length == 2) {
         // To do: add division equals
-        *tokens = add_token(INTEGER_DIVISION, *tokens, start, 2);
+        *tokens = add_token(INTEGER_DIVISION, *tokens, start, 2, line_number);
       } else {
-        *tokens = add_token(OPERATOR, *tokens, start, length);
+        *tokens = add_token(OPERATOR, *tokens, start, length, line_number);
       }
       continue;
     } else if (*current == '%') {
@@ -272,14 +277,25 @@ void lexer(char *file_contents, Token **tokens) {
       }
       int length = current - start;
       if (length == 1) {
-        *tokens = add_token(MODULUS, *tokens, start, 1);
+        *tokens = add_token(MODULUS, *tokens, start, 1, line_number);
       } else {
-        *tokens = add_token(OPERATOR, *tokens, start, length);
+        *tokens = add_token(OPERATOR, *tokens, start, length, line_number);
       }
 
       continue;
+    } else if (*current == '\n'){
+      line_number++;
+      current++;
+      continue;
+    } else if (*current == ' ') {
+      current++;
+      continue;
+    } else {
+      printf("ERROR: UNEXPECTED TOKEN TYPE: %c. Line number %d\n", *current, line_number);
+      return NULL;
     }
     current++;
   }
-  *tokens = add_token(END_OF_TOKENS, *tokens, "/0", 2);
+  *tokens = add_token(END_OF_TOKENS, *tokens, "/0", 2, line_number);
+  return *tokens;
 }

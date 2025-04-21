@@ -22,13 +22,25 @@ int main(int argc, char *argv[]) {
   }
 
   Token *tokens = NULL;
-  lexer(file_contents, &tokens);
+  tokens = lexer(file_contents, &tokens);
 
-  print_tokens(tokens);
-  parse_tokens(tokens);
+  if (tokens == NULL) {
+    printf("No tokens");
+    return 1;
+  }
 
+  // print_tokens(tokens);
+
+  // Parse tokens
+
+  Node *program = parse_tokens(tokens);
+  if (program == NULL) {
+    printf("No program");
+    return 1;
+  }
+  printf("Parsed tree:\n");
+  print_tree(program, 0);
 
   free_tokens(tokens);
-
   free(file_contents);
 }

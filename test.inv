@@ -1,5 +1,6 @@
-print(7*5+1*7);
-print(7*5+1*7);
-print(7*5+1*7);
-print(7*5+1*7);
-print(7*5+1*7);
+id = 9;
+print(id);
+result = id+(7+9)*2;
+print(result);
+id--;
+print(id);
