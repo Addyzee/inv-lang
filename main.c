@@ -41,6 +41,9 @@ int main(int argc, char *argv[]) {
   printf("Parsed tree:\n");
   print_tree(program, 0);
 
+  
   free_tokens(tokens);
   free(file_contents);
+  free_parse_tree(program);
+  return 0;
 }

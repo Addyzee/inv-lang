@@ -15,6 +15,7 @@ typedef struct Node {
 
 Node *parse_tokens(Token *head);
 void print_tree(Node *node, int indent);
+void free_parse_tree(Node *node);
 
 
 #endif
