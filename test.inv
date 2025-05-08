@@ -1,6 +1,2 @@
-id = 9;
-print(id);
-result = id+(7+9)*2;
-print(result);
-id--;
-print(id);
+int id = 9;
+int result = id * 5;

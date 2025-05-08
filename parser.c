@@ -129,7 +129,7 @@ Node *parse_declaration(Token **current) {
   }
   *current = (*current)->next;
 
-  if ((*current)->type != INT && (*current)->type != FLOAT) {
+  if ((*current)->type != INT && (*current)->type != FLOAT && (*current)->type != IDENTIFIER) {
     printf("ERROR PARSING DECLARATION. UNEXPECTED TOKEN TYPE: %s %s \nEXPECTED "
            "IDENTIFIER\n",
            token_type_to_string((*current)->type), (*current)->value);

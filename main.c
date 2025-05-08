@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  // print_tokens(tokens);
+  print_tokens(tokens);
 
   // Parse tokens
 
